@@ -4,7 +4,7 @@ import FileSync from 'lowdb/adapters/FileSync'
 import path from 'path'
 import fs from 'fs-extra'
 import LodashId from 'lodash-id'
-import { remote, app } from 'electron'
+import { app } from 'electron'
 
 export default {
     data() {
@@ -22,7 +22,7 @@ export default {
         //     global.__static = path.join(__dirname, '../../static').replace(/\\/g, '\\\\')
         // }
 
-        let APP = process.type === 'renderer' ? remote.app : app
+        let APP = process.type === 'renderer' ? require('@electron/remote').app : app
         let STORE_PATH = APP.getPath('userData')
         // let STORE_PATH = "/Users/sanjin/work/h5/vue/thief-book/static"
 

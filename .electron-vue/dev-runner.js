@@ -40,6 +40,14 @@ function logStats (proc, data) {
 
 function startRenderer () {
   return new Promise((resolve, reject) => {
+    let resolved = false
+    const markReady = () => {
+      if (!resolved) {
+        resolved = true
+        resolve()
+      }
+    }
+
     rendererConfig.entry.renderer = [path.join(__dirname, 'dev-client')].concat(rendererConfig.entry.renderer)
     rendererConfig.mode = 'development'
     const compiler = webpack(rendererConfig)
@@ -48,32 +56,35 @@ function startRenderer () {
       heartbeat: 2500
     })
 
-    compiler.hooks.compilation.tap('compilation', compilation => {
-      compilation.hooks.htmlWebpackPluginAfterEmit.tapAsync('html-webpack-plugin-after-emit', (data, cb) => {
-        hotMiddleware.publish({ action: 'reload' })
-        cb()
-      })
-    })
-
     compiler.hooks.done.tap('done', stats => {
+      if (stats.hasErrors()) {
+        logStats('Renderer', stats)
+        return
+      }
       logStats('Renderer', stats)
+      hotMiddleware.publish({ action: 'reload' })
+      markReady()
     })
 
     const server = new WebpackDevServer(
-      compiler,
       {
-        contentBase: path.join(__dirname, '../'),
-        quiet: true,
-        before (app, ctx) {
-          app.use(hotMiddleware)
-          ctx.middleware.waitUntilValid(() => {
-            resolve()
-          })
-        }
-      }
+        static: {
+          directory: path.join(__dirname, '../')
+        },
+        setupMiddlewares (middlewares, devServer) {
+          devServer.app.use(hotMiddleware)
+          return middlewares
+        },
+        client: false,
+        webSocketServer: false,
+        host: '127.0.0.1',
+        port: 9080,
+        hot: false
+      },
+      compiler
     )
 
-    server.listen(9080)
+    server.start().catch(reject)
   })
 }
 

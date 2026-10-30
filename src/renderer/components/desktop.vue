@@ -21,8 +21,8 @@
 
 <script>
 import db from "../../main/utils/db";
-import { ipcRenderer, remote } from "electron";
-import { on } from "cluster";
+import { ipcRenderer } from "electron";
+const remote = require("@electron/remote");
 
 export default {
   name: "desktop",

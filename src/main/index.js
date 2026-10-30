@@ -1,4 +1,5 @@
 import { app, BrowserWindow, Menu, Tray, globalShortcut, ipcMain, shell, dialog, nativeImage, TouchBar } from 'electron'
+import { initialize as initializeRemote, enable as enableRemote } from '@electron/remote/main'
 import db from './utils/db'
 import book from './utils/book'
 import osUtil from './utils/osUtil'
@@ -76,6 +77,17 @@ if (process.env.NODE_ENV !== 'development') {
     global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
 }
 
+initializeRemote()
+
+function createWindow(options) {
+    options.webPreferences = Object.assign({
+        contextIsolation: false
+    }, options.webPreferences)
+    const win = new BrowserWindow(options)
+    enableRemote(win.webContents)
+    return win
+}
+
 let tray;
 let settingWindow;
 let soWindow;
@@ -150,7 +162,7 @@ function createVideo() {
         frame = false;
     }
 
-    videoWindow = new BrowserWindow({
+    videoWindow = createWindow({
         useContentSize: true,
         width: 478,
         height: 28,
@@ -168,7 +180,6 @@ function createVideo() {
     webContents.on('did-finish-load', () => {
         webContents.setZoomFactor(1);
         webContents.setVisualZoomLevelLimits(1, 1);
-        webContents.setLayoutZoomLevelLimits(0, 0);
     })
 
     videoWindow.loadURL(videoURL)
@@ -193,7 +204,7 @@ function createPdf() {
         frame = false;
     }
 
-    pdfWindow = new BrowserWindow({
+    pdfWindow = createWindow({
         useContentSize: true,
         width: 478,
         height: 28,
@@ -211,7 +222,6 @@ function createPdf() {
     webContents.on('did-finish-load', () => {
         webContents.setZoomFactor(1);
         webContents.setVisualZoomLevelLimits(1, 1);
-        webContents.setLayoutZoomLevelLimits(0, 0);
     })
 
     pdfWindow.loadURL(pdfURL)
@@ -236,7 +246,7 @@ function createWeb() {
         frame = false;
     }
 
-    webWindow = new BrowserWindow({
+    webWindow = createWindow({
         useContentSize: true,
         width: 478,
         height: 28,
@@ -255,7 +265,6 @@ function createWeb() {
     webContents.on('did-finish-load', () => {
         webContents.setZoomFactor(1);
         webContents.setVisualZoomLevelLimits(1, 1);
-        webContents.setLayoutZoomLevelLimits(0, 0);
     })
 
     webWindow.loadURL(webURL)
@@ -275,7 +284,7 @@ function createSoSetting() {
      * Initial window options
      */
 
-    soWindow = new BrowserWindow({
+    soWindow = createWindow({
         title: '搜 索',
         useContentSize: true,
         width: 334,
@@ -292,7 +301,6 @@ function createSoSetting() {
     webContents.on('did-finish-load', () => {
         webContents.setZoomFactor(1);
         webContents.setVisualZoomLevelLimits(1, 1);
-        webContents.setLayoutZoomLevelLimits(0, 0);
     })
 
     soWindow.loadURL(soURL)
@@ -307,7 +315,7 @@ function createWindownSetting() {
     /**
      * Initial window options
      */
-    settingWindow = new BrowserWindow({
+    settingWindow = createWindow({
         title: '设 置',
         useContentSize: true,
         width: 715,
@@ -324,7 +332,6 @@ function createWindownSetting() {
     webContents.on('did-finish-load', () => {
         webContents.setZoomFactor(1);
         webContents.setVisualZoomLevelLimits(1, 1);
-        webContents.setLayoutZoomLevelLimits(0, 0);
     })
 
     settingWindow.loadURL(settingURL)
@@ -360,7 +367,7 @@ function createWindownDesktop() {
         y = parseInt(arr_wz[0]);
     }
 
-    desktopWindow = new BrowserWindow({
+    desktopWindow = createWindow({
         useContentSize: true,
         width: width,
         height: height,
@@ -379,7 +386,6 @@ function createWindownDesktop() {
     webContents.on('did-finish-load', () => {
         webContents.setZoomFactor(1);
         webContents.setVisualZoomLevelLimits(1, 1);
-        webContents.setLayoutZoomLevelLimits(0, 0);
     })
 
     desktopWindow.loadURL(desktopURL)
@@ -409,7 +415,7 @@ function createWindownBarDesktop() {
     /**
      * Initial window options
      */
-    desktopBarWindow = new BrowserWindow({
+    desktopBarWindow = createWindow({
         useContentSize: true,
         width: 88,
         height: 23,
@@ -430,7 +436,6 @@ function createWindownBarDesktop() {
     webContents.on('did-finish-load', () => {
         webContents.setZoomFactor(1);
         webContents.setVisualZoomLevelLimits(1, 1);
-        webContents.setLayoutZoomLevelLimits(0, 0);
     })
 
     desktopBarWindow.loadURL(desktopURL)
@@ -693,8 +698,8 @@ function checkUpdate() {
                 buttons: ['是', '否'],
                 icon: image
             }
-            dialog.showMessageBox(options, function(index) {
-                if (index == 0) {
+            dialog.showMessageBox(options).then(function(result) {
+                if (result.response === 0) {
                     shell.openExternal('https://github.com/cteamx/Thief/releases')
                 }
             })
@@ -706,7 +711,7 @@ function checkUpdate() {
                 buttons: ['确认'],
                 icon: image
             }
-            dialog.showMessageBox(options)
+            dialog.showMessageBox(options).catch(function() {})
         }
     })
 }
@@ -789,8 +794,8 @@ function createKey() {
             buttons: ['打开文档', '否'],
             icon: image
         }
-        dialog.showMessageBox(options, function(index) {
-            if (index == 0) {
+        dialog.showMessageBox(options).then(function(result) {
+            if (result.response === 0) {
                 shell.openExternal('https://thief.im/#/use?id=%e5%bc%82%e5%b8%b8%e6%b1%87%e6%80%bb')
             }
         })
@@ -820,7 +825,7 @@ function createTray() {
                 buttons: ['确认'],
                 icon: image
             }
-            dialog.showMessageBox(options)
+            dialog.showMessageBox(options).catch(function() {})
         }
     }, {
         label: 'Thief官网',

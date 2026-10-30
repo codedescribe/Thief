@@ -1,8 +1,5 @@
 'use strict';
 
-import { remote } from 'electron'
-
-
 const isMac = 'darwin' === process.platform;
 
 const commands = ['Command', 'Control', 'Shift', 'Capslock', 'Alt', 'Tap', 'Enter', 'Delete', 'Backspace']

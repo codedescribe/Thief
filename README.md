@@ -23,6 +23,10 @@
 
 **Thief** 为用户提供 **`Vscode`** 版本，具体请看 https://github.com/cteamx/Thief-Book-VSCode
 
+## 技术文档
+
+项目架构、启动流程、配置项、数据存储、IPC、构建命令和已知限制见 [docs/PROJECT.md](docs/PROJECT.md)。
+
 
 ## 版本区别
 

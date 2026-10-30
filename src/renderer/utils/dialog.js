@@ -1,6 +1,6 @@
 'use strict';
 
-import { remote } from 'electron'
+const remote = require('@electron/remote')
 
 export default {
     showOpenFile(callback) {
